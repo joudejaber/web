@@ -21,7 +21,43 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function damage_documentation()
+    {
+        return $this->hasMany(DamageDocumentation::class, 'user_id');
+    }
+
+    public function damage_image()
+    {
+        return $this->hasMany(DamageImage::class, 'user_id');
+    }
+
+    public function service()
+    {
+        return $this->hasMany(Service::class, 'user_id');
+    }
+
+    public function productofservice()
+    {
+        return $this->hasMany(ProductOfService::class, 'user_id');
+    }
+
+    public function homeownerAppointments()
+    {
+        return $this->hasMany(BookAppointment::class, 'homeowner_id');
+    }
+
+    public function providerAppointments()
+    {
+        return $this->hasMany(BookAppointment::class, 'provider_id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

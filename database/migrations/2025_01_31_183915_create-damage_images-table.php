@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('damageimages', function (Blueprint $table) {
             $table->id();
             $table->string('image');
-            $table->foreignId('userId')->references('id')->on('users')->onDelete('cascade');
-            $table->foreignId('damageId')->references('id')->on('damagedocumentations')->onDelete('cascade');
+            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignId('damage_id')->references('id')->on('damagedocumentations')->onDelete('cascade');
             $table->timestamps();
         });
     }

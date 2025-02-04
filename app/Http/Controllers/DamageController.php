@@ -20,7 +20,7 @@ class DamageController extends Controller
             'type' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'notes' => 'nullable|string',
-            'images' => 'required|array',
+            'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
@@ -63,7 +63,8 @@ class DamageController extends Controller
         $damage->update([
             'type' => $request->type,
             'location' => $request->location,
-            'notes' => $request->notes
+            'notes' => $request->notes,
+            'user_id' => $damage->user_id
         ]);
         $validatedData['user_id'] = $damage->user_id;
 
@@ -116,9 +117,15 @@ class DamageController extends Controller
     public function deleteImage($id)
     {
         $image = DamageImage::findOrFail($id);
-        Storage::disk('public')->delete($image->image);
+        
+        // Delete the image file from storage
+        if (Storage::disk('public')->exists($image->image)) {
+            Storage::disk('public')->delete($image->image);
+        }
+        
+        // Delete the image record
         $image->delete();
-
+        
         return back()->with('success', 'Image deleted successfully.');
     }
 }

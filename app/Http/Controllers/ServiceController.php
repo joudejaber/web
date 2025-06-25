@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -103,4 +104,42 @@ class ServiceController extends Controller
 
     return redirect()->route('dashboard')->with('success', 'Service deleted successfully.');
 }
+
+public function show($id)
+{
+    $service = Service::with('user.provider')->findOrFail($id);
+
+    return view('services.show', compact('service'));
+}
+
+
+public function editProfile()
+{
+    $provider = auth()->user()->provider ?? new Provider();
+    return view('provider.profile_edit', compact('provider'));
+}
+
+public function updateProfile(Request $request)
+{
+    $validated = $request->validate([
+        'shop_name' => 'required|string|max:255',
+        'location' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'contact_info' => 'nullable|string|max:255',
+    ]);
+
+    $user = auth()->user();
+
+    $provider = $user->provider;
+    if (!$provider) {
+        $provider = new Provider();
+        $provider->user_id = $user->id;
+    }
+
+    $provider->fill($validated);
+    $provider->save();
+
+    return redirect()->route('dashboard')->with('success', 'Profile updated successfully.');
+}
+
 }

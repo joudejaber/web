@@ -106,4 +106,10 @@ public function destroy($id)
     return redirect()->route('dashboard')->with('success', 'Product deleted successfully.');
 }
 
+public function index()
+{
+    $products = ProductOfService::with('service')->get();
+    return view('products.index', compact('products'));
+}
+
 }

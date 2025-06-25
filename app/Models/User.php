@@ -59,16 +59,20 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class, 'provider_id');
     }
 
+    public function provider()
+{
+    return $this->hasOne(Provider::class);
+}
+
+public function services()
+{
+    return $this->hasMany(Service::class);
+}
+
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
 }

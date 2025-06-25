@@ -4,16 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
 class DamageImage extends Model
 {
-    protected $fillable = ['image','user_id','damage_id'];
+    protected $fillable = ['damage_id', 'image_path'];
 
-    public function user()
+    public function damage()
     {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-    public function damage_documentation()
-    {
-        return $this->belongsTo(DamageDocumentation::class, 'damage_id');
+        return $this->belongsTo(Damage::class); // Relates to the Damage model
     }
 }

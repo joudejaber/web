@@ -29,8 +29,29 @@
                     <a href="{{ route('services.index') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Services</a>
                 </li>
                 <li>
-                    <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">About</a>
+                    <a href="{{ route('about') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
+                        About
+                    </a>
                 </li>
+                 <!-- Appointments Button -->
+                 @auth
+                 <!-- If the user is logged in -->
+                 <li>
+                     @if(Auth::user()->role_id == '2')
+                         <!-- If the user is a provider, show provider appointments -->
+                         <a href="{{ route('provider.appointments') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
+                     @else
+                         <!-- If the user is not a provider, show create appointments page -->
+                         <a href="{{ route('appointments.create') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
+                     @endif
+                 </li>
+             @else
+                 <!-- If the user is not logged in, show the login link -->
+                 <li>
+                     <a href="{{ route('login') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
+                 </li>
+             @endauth
+
                 <li>
                     <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Contact</a>
                 </li>
@@ -54,16 +75,6 @@
                                 <li>
                                     <a href="{{ route('dashboard')}}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
                                 </li>
-                                <li>
-                                    @auth
-                                        @if(Auth::user()->role_id == '2')
-                                            <a href="{{ route('provider.appointments') }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Appointments</a>
-                                        @else
-                                            <a href="{{ route('appointments.create') }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Appointments</a>
-                                        @endif
-                                    @endauth
-                                </li>
-                                
                                 <li>
                                     <a href="{{ route('logout') }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Sign out</a>
                                 </li>
@@ -104,11 +115,13 @@
                 </a>
                 <ul class="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
                     <li>
-                        <a href="#" class="hover:underline me-4 md:me-6">About</a>
+                        <a href="{{ route('about') }}" class="hover:underline me-4 md:me-6">About</a>
                     </li>
+                    
                     <li>
-                        <a href="#" class="hover:underline me-4 md:me-6">Privacy Policy</a>
+                        <a href="{{ route('privacy.policy') }}" class="hover:underline me-4 md:me-6">Privacy Policy</a>
                     </li>
+                    
                     <li>
                         <a href="#" class="hover:underline me-4 md:me-6">Licensing</a>
                     </li>
@@ -123,5 +136,8 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+    @yield('scripts')
+    @stack('scripts')
+
 </body>
 </html>

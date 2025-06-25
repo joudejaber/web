@@ -40,7 +40,7 @@ class AuthController extends Controller
                 return redirect()->back()->with('error','failed to create user');
             }
             Auth::login($user);
-            return redirect()->route('home')->with('success','user registered successfully!');
+            return redirect()->route('dashboard')->with('success','user registered successfully!');
         }
         catch(\Exception $e){
             return redirect()->back()->with('error', $e->getMessage());
@@ -62,7 +62,7 @@ class AuthController extends Controller
                 return redirect()->back()->with("error", "Invalid password!");
             }
             Auth::login($user);
-            return redirect()->route('home')->with("success", "User logged in successfully!");
+            return redirect()->route('dashboard')->with("success", "User logged in successfully!");
         } 
         catch (\Exception $e) {
             return redirect()->back()->with("error", $e->getMessage());

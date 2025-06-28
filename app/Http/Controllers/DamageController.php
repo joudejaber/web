@@ -152,9 +152,10 @@ class DamageController extends Controller
     // Admin: view list of all damage records
     public function index()
 {
-    $damages = Damage::with('report')->latest()->get();
+    $damages = Damage::with(['report.user'])->latest()->get();
     return view('admin.damages.index', compact('damages'));
 }
+
 
 
     public function show($id)
@@ -178,7 +179,7 @@ public function showImages(Damage $damage)
 {
     $images = json_decode($damage->image_path, true) ?? [];
 
-    return view('admin.damages.images', compact('damage', 'images'));
+    return view('government.damages.images', compact('damage', 'images'));
 }
 
 }

@@ -6,6 +6,8 @@ use App\Models\{Appointment, DamageReport, ProductOfService, Service, User};
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\Provider;
+use App\Models\Damage;
+use App\Models\Contract;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -32,9 +34,53 @@ $damages = $personalInfo ? $personalInfo->damages : collect(); // Safe fallback
 
 
         if ($user->role_id == 3) {
-            // compact Goverment details
-            return view("government.dashboard");
-        }
+    // Fetch data
+    $claimedDamages = Damage::with('report.user')
+        ->where('status', 'pending')
+        ->get();
+
+    $damageReports = DamageReport::with('user')->get();
+
+    $contracts = Contract::with('appointment.homeowner', 'appointment.provider', 'appointment.service')->get();
+
+    $homeowners = User::with(['damageReports.damages'])
+        ->whereHas('damageReports')
+        ->get();
+
+    // Prepare statistics
+    $totalClaims = $claimedDamages->count();
+    $totalContracts = $contracts->count();
+    $totalHomeowners = $homeowners->count();
+
+    // Contract status distribution (for pie chart)
+    $contractStatusCounts = $contracts->groupBy('status')->map->count();
+
+    // Claimed damages grouped by homeowner name (for bar chart)
+$claimedDamageByHomeowner = $claimedDamages
+    ->groupBy(fn($damage) => $damage->report->user->name ?? 'Unknown')
+    ->map->count();
+
+
+    // Contracts per service (for doughnut chart)
+    $serviceCounts = $contracts
+        ->filter(fn($contract) => $contract->appointment && $contract->appointment->service)
+        ->groupBy(fn($contract) => $contract->appointment->service->name)
+        ->map->count();
+
+    return view('government.dashboard', compact(
+        'claimedDamages',
+        'damageReports',
+        'contracts',
+        'homeowners',
+        'totalClaims',
+        'totalContracts',
+        'totalHomeowners',
+        'contractStatusCounts',
+        'claimedDamageByHomeowner',
+        'serviceCounts'
+    ));
+}
+
 
         if ($user->role_id == 4) {
             $usersCount = User::count();
@@ -48,10 +94,11 @@ $damages = $personalInfo ? $personalInfo->damages : collect(); // Safe fallback
                 ->take(5)
                 ->get();
 
-            $recentDamageReports = DamageReport::with(['user'])
+            $recentDamageReports = DamageReport::with(['user', 'damages'])
                 ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get();
+
 
             // Chart Data
             $chartData = $this->getChartData();
@@ -68,35 +115,59 @@ $damages = $personalInfo ? $personalInfo->damages : collect(); // Safe fallback
         }
     }
 
-    protected function getChartData()
-    {
-        $labels = [];
-        $usersData = [];
-        $appointmentsData = [];
-        $damageReportsData = [];
+   public function getChartData()
+{
+    // Monthly user registration
+    $labels = [];
+    $users = [];
+    $appointments = [];
+    $damageReports = [];
 
-        for ($i = 11; $i >= 0; $i--) {
-            $date = Carbon::now()->subMonths($i);
-            $labels[] = $date->format('M Y');
+    for ($i = 5; $i >= 0; $i--) {
+        $month = now()->subMonths($i)->format('M Y');
+        $labels[] = $month;
 
-            $usersData[] = User::whereYear('created_at', $date->year)
-                ->whereMonth('created_at', $date->month)
-                ->count();
+        $users[] = User::whereMonth('created_at', now()->subMonths($i)->month)
+            ->whereYear('created_at', now()->subMonths($i)->year)
+            ->count();
 
-            $appointmentsData[] = Appointment::whereYear('created_at', $date->year)
-                ->whereMonth('created_at', $date->month)
-                ->count();
+        $appointments[] = Appointment::whereMonth('created_at', now()->subMonths($i)->month)
+            ->whereYear('created_at', now()->subMonths($i)->year)
+            ->count();
 
-            $damageReportsData[] = DamageReport::whereYear('created_at', $date->year)
-                ->whereMonth('created_at', $date->month)
-                ->count();
-        }
-
-        return [
-            'labels' => $labels,
-            'users' => $usersData,
-            'appointments' => $appointmentsData,
-            'damageReports' => $damageReportsData,
-        ];
+        $damageReports[] = DamageReport::whereMonth('created_at', now()->subMonths($i)->month)
+            ->whereYear('created_at', now()->subMonths($i)->year)
+            ->count();
     }
+
+    // Roles breakdown (for Pie chart) — keys lowercase
+    $roles = [
+        'homeowners' => User::where('role_id', 1)->count(),
+        'providers' => User::where('role_id', 2)->count(),
+        'gov' => User::where('role_id', 4)->count(),
+    ];
+
+    // Appointments per service (for Bar chart)
+    $appointmentsPerService = Service::withCount('appointments')->get()->pluck('appointments_count', 'name')->toArray();
+
+    // Damage report status breakdown (for Doughnut chart) — keys lowercase
+    $damageStatus = [
+        'pending' => Damage::where('status', 'pending')->count(),
+        'accepted' => Damage::where('status', 'accepted')->count(),
+        'declined' => Damage::where('status', 'declined')->count(),
+    ];
+
+    return [
+        'labels' => $labels,
+        'users' => $users,
+        'appointments' => $appointments,
+        'damageReports' => $damageReports,
+        'roles' => $roles,
+        'appointmentsPerService' => $appointmentsPerService,
+        'damageStatus' => $damageStatus,
+    ];
+}
+
+
+
 }

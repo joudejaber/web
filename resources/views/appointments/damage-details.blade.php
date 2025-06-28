@@ -13,10 +13,16 @@
                         <h3 class="text-xl font-semibold">{{ $damage->name }}</h3>
                         <p><strong>Description:</strong> {{ $damage->description }}</p>
 
-                        @if($damage->image_path)
+                        @php
+                            $images = json_decode($damage->image_path) ?? [];
+                        @endphp
+
+                        @if(count($images) > 0)
                             <div class="mt-2">
-                                <strong>Image:</strong>
-                                <img src="{{ asset('storage/' . $damage->image_path) }}" alt="{{ $damage->name }}" class="w-full max-w-sm rounded-md mt-2">
+                                <strong>Images:</strong>
+                                @foreach($images as $image)
+                                    <img src="{{ asset('storage/' . $image) }}" alt="{{ $damage->name }}" class="w-full max-w-sm rounded-md mt-2 mb-2">
+                                @endforeach
                             </div>
                         @else
                             <p class="text-gray-600">No image available for this damage.</p>

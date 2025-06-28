@@ -64,6 +64,11 @@ class User extends Authenticatable
     return $this->hasOne(Provider::class);
 }
 
+public function damageReports()
+{
+    return $this->hasMany(DamageReport::class);
+}
+
 public function services()
 {
     return $this->hasMany(Service::class);

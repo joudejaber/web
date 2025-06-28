@@ -18,20 +18,24 @@ class AppointmentController extends Controller
     $request->validate([
         'service_id' => 'required|exists:services,id',
         'time' => 'required|date',
+        'damage_id' => 'required|exists:damages,id', // Add validation for damage_id
     ]);
 
     $provider = Service::find($request->service_id)->user;
 
     $appointment = new Appointment();
-    $appointment->homeowner_id = Auth::id(); 
-    $appointment->provider_id = $provider->id; 
-    $appointment->service_id = $request->service_id; 
-    $appointment->appointment_time = $request->time; 
-    $appointment->status = 'pending'; 
+    $appointment->homeowner_id = Auth::id();
+    $appointment->provider_id = $provider->id;
+    $appointment->service_id = $request->service_id;
+    $appointment->damage_id = $request->damage_id; // Save damage_id here!
+    $appointment->appointment_time = $request->time;
+    $appointment->status = 'pending';
     $appointment->save();
 
     return redirect()->route('dashboard')->with('success', 'Appointment scheduled successfully!');
 }
+
+
 
 public function providerAppointments()
 {
@@ -100,21 +104,38 @@ public function createAppointment()
 
 public function showDamageDetails($appointmentId)
 {
-    // Fetch the appointment by ID
-    $appointment = Appointment::findOrFail($appointmentId);
+    // Eager load damage directly, not damageReport
+    $appointment = Appointment::with('damage')->findOrFail($appointmentId);
 
-    // Get the damages where damage_id matches the appointment's damage_id
-    $damages = Damage::where('id', $appointment->damage_id)->get(); // Assuming `damage_id` is stored on the appointment
+    // Get the damage linked directly to appointment (only one)
+    $damage = $appointment->damage;
 
-    // Pass the damages and appointment data to the view
-    return view('appointments.damage-details', compact('damages', 'appointment'));
+    // Pass a collection for blade consistency, even if damage is one or null
+    $damages = $damage ? collect([$damage]) : collect();
+
+    return view('appointments.damage-details', compact('appointment', 'damages'));
 }
+
+
 
 public function index()
 {
-    $appointments = Appointment::with(['homeowner', 'serviceProvider'])->get();
+    // Load all appointments with related models including 'damage'
+    $appointments = Appointment::with(['homeowner', 'provider', 'service', 'damage'])->get();
+
+    // Pass the appointments to the admin appointments view
     return view('admin.appointments.index', compact('appointments'));
 }
+
+
+public function destroy($id)
+{
+    $appointment = Appointment::findOrFail($id);
+    $appointment->delete();
+
+    return redirect()->route('appointments.index')->with('success', 'Appointment deleted successfully.');
+}
+
 
 
 }

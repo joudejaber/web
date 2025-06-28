@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\PersonalReportController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\GovernmentMiddleware;
 use App\Http\Middleware\HomeownerMiddleware;
 use App\Http\Middleware\ServiceProviderMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -54,10 +55,10 @@ Route::middleware(['auth',HomeownerMiddleware::class])->group( function () {
     Route::get('/damage/{id}/view', [DamageController::class, 'show'])->name('damage.view');
 
 });
-Route::post('/admin/damages/{damage}/accept', [DamageController::class, 'accept'])->name('damages.accept');
-Route::post('/admin/damages/{damage}/decline', [DamageController::class, 'decline'])->name('damages.decline');
+//Route::post('/admin/damages/{damage}/accept', [DamageController::class, 'accept'])->name('damages.accept');
+//Route::post('/admin/damages/{damage}/decline', [DamageController::class, 'decline'])->name('damages.decline');
 Route::get('/admin/damages', [DamageController::class, 'index'])->name('damages.index');
-Route::get('/admin/damages/{damage}/images', [DamageController::class, 'showImages'])->name('damages.images');
+
 
 
 Route::middleware(['auth',ServiceProviderMiddleware::class])->group( function () {
@@ -84,7 +85,13 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->group(func
     Route::get('/admin/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/admin/damage-reports', [DamageController::class, 'index'])->name('damages.index');
     Route::get('/service/products', [ProductController::class, 'index'])->name('products.index');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/admin/providers', [ServiceController::class, 'listProviders'])->name('providers.index');
+    Route::get('/admin/providers/{id}', [ServiceController::class, 'showProvider'])->name('providers.show');
+    Route::delete('/admin/providers/{id}', [ServiceController::class, 'destroyProvider'])->name('providers.destroy');
+    Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
 });
+
 
 
 Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contract.view');
@@ -104,10 +111,15 @@ Route::get('/personal-report/{id}/edit', [PersonalReportController::class, 'edit
 Route::put('/personal-report/{id}', [PersonalReportController::class, 'update'])->name('personal.report.update');
 
 
-Route::middleware(['auth', 'government'])->group(function () {
-    Route::get('/government/dashboard', [GovernmentController::class, 'dashboard'])->name('government.dashboard');
-});
-
 Route::get('/services/{service}', [ServiceController::class, 'show'])->name('service.show');
 Route::get('/provider/profile', [ServiceController::class, 'editProfile'])->name('provider.profile.edit');
 Route::put('/provider/profile', [ServiceController::class, 'updateProfile'])->name('provider.profile.update');
+
+Route::middleware(['auth', GovernmentMiddleware::class])->prefix('government')->name('government.')->group(function () {
+    Route::get('/dashboard', [GovernmentController::class, 'dashboard'])->name('dashboard');
+    Route::get('/damages/{damage}/images', [DamageController::class, 'showImages'])->name('damages.images');
+    Route::post('/damages/{damage}/accept', [DamageController::class, 'accept'])->name('damages.accept');
+    Route::post('/damages/{damage}/decline', [DamageController::class, 'decline'])->name('damages.decline');
+    Route::get('/damageReports/{user}', [GovernmentController::class, 'showDamageReports'])->name('damageReports.show');
+    Route::get('/contracts/{contract}', [GovernmentController::class, 'showContract'])->name('contracts.show');
+});

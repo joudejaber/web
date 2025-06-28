@@ -142,4 +142,31 @@ public function updateProfile(Request $request)
     return redirect()->route('dashboard')->with('success', 'Profile updated successfully.');
 }
 
+public function listProviders()
+{
+    $providers = Provider::with('user.services')->get();
+    return view('admin.services.index', compact('providers'));
+}
+
+public function providersIndex()
+{
+    $providers = Provider::with('user.services')->get();
+    return view('admin.services.index', compact('providers'));
+}
+
+public function showProvider($id)
+    {
+        $provider = Provider::with('user', 'user.services')->findOrFail($id);
+        return view('admin.services.provider', compact('provider'));
+    }
+
+    public function destroyProvider($id)
+    {
+        $provider = Provider::findOrFail($id);
+
+        // Delete the related user, which cascades provider & services
+        $provider->user()->delete();
+
+        return redirect()->route('providers.index')->with('success', 'Provider deleted successfully.');
+    }
 }

@@ -26,8 +26,15 @@ class Appointment extends Model
     }
     public function damage()
 {
-    return $this->belongsTo(DamageDocumentation::class);
+    return $this->belongsTo(Damage::class, 'damage_id');
 }
+
+
+public function damageReport()
+{
+    return $this->belongsTo(DamageReport::class, 'damage_id');
+}
+
 
 public function contract()
 {

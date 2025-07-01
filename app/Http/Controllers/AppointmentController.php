@@ -17,8 +17,8 @@ class AppointmentController extends Controller
 {
     $request->validate([
         'service_id' => 'required|exists:services,id',
-        'time' => 'required|date',
-        'damage_id' => 'required|exists:damages,id', // Add validation for damage_id
+        'time' => 'required|date|after:now',  
+        'damage_id' => 'required|exists:damages,id',
     ]);
 
     $provider = Service::find($request->service_id)->user;
@@ -27,13 +27,14 @@ class AppointmentController extends Controller
     $appointment->homeowner_id = Auth::id();
     $appointment->provider_id = $provider->id;
     $appointment->service_id = $request->service_id;
-    $appointment->damage_id = $request->damage_id; // Save damage_id here!
+    $appointment->damage_id = $request->damage_id;
     $appointment->appointment_time = $request->time;
     $appointment->status = 'pending';
     $appointment->save();
 
     return redirect()->route('dashboard')->with('success', 'Appointment scheduled successfully!');
 }
+
 
 
 

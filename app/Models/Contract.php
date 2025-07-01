@@ -37,5 +37,4 @@ public function provider()
     return $this->hasMany(Work::class);
 }
 
-
 }

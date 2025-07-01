@@ -12,15 +12,11 @@ use Illuminate\Support\Facades\Auth;
 
 class DamageController extends Controller
 {
-    
-    // Step 2: Show form to add damages to an existing report
     public function addDamagesForm($reportId)
     {
         $report = DamageReport::findOrFail($reportId);
         return view('damages.report_prompt', compact('report'));
     }
-
-    // Step 2: Store submitted damages and images
     public function storeDamages(Request $request, $reportId)
 {
     $validatedData = $request->validate([

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Contract;
 use App\Models\Work;
 use App\Models\WorkImage;
+use App\Notifications\ContractUpdated;
 use Illuminate\Support\Facades\Storage;
 
 
@@ -21,19 +22,38 @@ public function show($id)
 
     return view('contracts.show', compact('contract'));
 }
-
-public function showByAppointment($appointmentId)
+public function showcontractnotification($id)
 {
-    $contract = Contract::with(['provider', 'homeowner', 'appointment.service'])
-        ->where('appointment_id', $appointmentId)
-        ->first();
+    $contract = Contract::with(['provider', 'homeowner', 'appointment.service'])->find($id);
 
     if (!$contract) {
         return redirect()->route('provider.appointments')->with('error', 'Contract not found.');
     }
 
-    return view('contracts.show', compact('contract'));
+    return view('appointments.notification-contract', compact('contract'));
 }
+
+public function showByAppointment($appointmentId)
+{
+    $contract = Contract::with(['provider', 'homeowner', 'appointment.service'])
+        ->where('appointment_id', $appointmentId)
+        ->firstOrFail();
+
+    // Redirect if contract not found
+    if (!$contract) {
+        return redirect()->back()->with('error', 'Contract not found.');
+    }
+
+    // Show different views based on role
+    if (auth()->user()->role_id == 2) {
+        // Service Provider view (editable)
+        return view('contracts.show', compact('contract'));
+    } else {
+        // Homeowner view (read-only)
+        return view('appointments.show-contract', compact('contract'));
+    }
+}
+
 public function storeWork(Request $request, $id)
 {
     $workData = $request->input('work');
@@ -47,7 +67,6 @@ public function storeWork(Request $request, $id)
             'end_date' => $work['end_date'],
         ]);
 
-        // Handle images for this work
         if ($request->hasFile("work.{$index}.pictures")) {
             foreach ($request->file("work.{$index}.pictures") as $image) {
                 $path = $image->store('work_pictures', 'public');
@@ -59,17 +78,35 @@ public function storeWork(Request $request, $id)
         }
     }
 
+    // 🔔 Notify homeowner
+    $contract = Contract::findOrFail($id);
+    $homeowner = $contract->homeowner;
+    $homeowner->notify(new ContractUpdated($contract));
+
     return redirect()->back()->with('success', 'Work(s) added successfully!');
 }
+
 
 public function destroyWork($contractId, $workId)
 {
     $work = Work::where('contract_id', $contractId)->findOrFail($workId);
-    $work->images()->delete(); // Delete related images
+
+    // Delete associated images
+    $work->images()->each(function ($image) {
+        \Storage::disk('public')->delete($image->image_path);
+        $image->delete();
+    });
+
     $work->delete();
+
+    // 🔔 Notify homeowner after work is deleted
+    $contract = Contract::findOrFail($contractId);
+    $homeowner = $contract->homeowner;
+    $homeowner->notify(new ContractUpdated($contract));
 
     return redirect()->back()->with('success', 'Work deleted successfully.');
 }
+
 
 public function editWork($contractId, $workId)
 {
@@ -82,7 +119,6 @@ public function editWork($contractId, $workId)
 public function updateWork(Request $request, $contractId, $workId)
 {
     $work = Work::where('contract_id', $contractId)->findOrFail($workId);
-
     $work->update([
         'description' => $request->description,
         'cost' => $request->cost,
@@ -96,6 +132,11 @@ public function updateWork(Request $request, $contractId, $workId)
             $work->images()->create(['image_path' => $path]);
         }
     }
+
+    // 🔔 Notify homeowner
+    $contract = $work->contract;
+    $homeowner = $contract->homeowner;
+    $homeowner->notify(new ContractUpdated($contract));
 
     return redirect()->route('contract.view', $contractId)->with('success', 'Work updated successfully.');
 }
@@ -111,9 +152,17 @@ public function destroyWorkImage($id)
 public function updateStatus(Request $request, $id)
 {
     $contract = Contract::findOrFail($id);
+
     $contract->status = $request->input('status');
     $contract->save();
 
+    // 🔔 Notify homeowner after status change
+    $homeowner = $contract->homeowner;
+    $homeowner->notify(new ContractUpdated($contract));
+
     return back()->with('success', 'Contract status updated!');
 }
+
+
+
 }

@@ -58,6 +58,7 @@ Route::middleware(['auth',HomeownerMiddleware::class])->group( function () {
 //Route::post('/admin/damages/{damage}/accept', [DamageController::class, 'accept'])->name('damages.accept');
 //Route::post('/admin/damages/{damage}/decline', [DamageController::class, 'decline'])->name('damages.decline');
 Route::get('/admin/damages', [DamageController::class, 'index'])->name('damages.index');
+Route::get('/appointments/{appointment}/contract', [ContractController::class, 'showByAppointment'])->name('contract.byAppointment');
 
 
 
@@ -123,3 +124,12 @@ Route::middleware(['auth', GovernmentMiddleware::class])->prefix('government')->
     Route::get('/damageReports/{user}', [GovernmentController::class, 'showDamageReports'])->name('damageReports.show');
     Route::get('/contracts/{contract}', [GovernmentController::class, 'showContract'])->name('contracts.show');
 });
+
+Route::patch('/notifications/{id}/read', function ($id) {
+    $notification = auth()->user()->notifications()->findOrFail($id);
+    $notification->markAsRead();
+    return back();
+})->name('notifications.markAsRead');
+
+Route::get('/contract/view/{contract}', [ContractController::class, 'showcontractnotification'])
+    ->name('notification.contract.view');

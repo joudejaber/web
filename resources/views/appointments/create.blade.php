@@ -25,7 +25,10 @@
         </div>
         <div class="mb-4">
             <label for="time" class="block text-sm font-medium text-gray-700">Date and Time</label>
-            <input type="datetime-local" name="time" id="time" class="mt-1 block w-64 p-1.5 border border-gray-300 rounded-md text-sm">
+                @php
+                $minDateTime = \Carbon\Carbon::now()->format('Y-m-d\TH:i');
+            @endphp
+            <input type="datetime-local" name="time" id="time" min="{{ $minDateTime }}" class="mt-1 block w-64 p-1.5 border border-gray-300 rounded-md text-sm">
         </div>
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md">Schedule Appointment</button>
     </form>
@@ -51,6 +54,7 @@
                             <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Service</th>
                             <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date & Time</th>
                             <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
+                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Contract</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -59,6 +63,16 @@
                                 <td class="px-4 py-2 text-sm text-gray-800">{{ $appointment->service->type }}</td>
                                 <td class="px-4 py-2 text-sm text-gray-800">{{ \Carbon\Carbon::parse($appointment->time)->format('F j, Y \a\t h:i A') }}</td>
                                 <td class="px-4 py-2 text-sm text-gray-800">{{ ucfirst($appointment->status) ?? 'Pending' }}</td>
+                                <td class="px-4 py-2">
+                                    @if($appointment->contract)
+                                        <a href="{{ route('contract.byAppointment', $appointment->id) }}"
+                                        class="inline-block px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+                                            View Contract
+                                        </a>
+                                    @else
+                                        <span class="text-gray-400 italic">Not available</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

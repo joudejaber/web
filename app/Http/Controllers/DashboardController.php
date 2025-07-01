@@ -17,13 +17,23 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         if ($user->role_id == 1) {
-            $damageReports = DamageReport::where('user_id', $user->id)->latest()->get();
-            $personalInfo = DamageReport::with('damages')->where('user_id', $user->id)->first();
-$damages = $personalInfo ? $personalInfo->damages : collect(); // Safe fallback
+    $damageReports = DamageReport::where('user_id', $user->id)->latest()->get();
+    $personalInfo = DamageReport::with('damages')->where('user_id', $user->id)->first();
+    $damages = $personalInfo ? $personalInfo->damages : collect();
+    $report = DamageReport::where('user_id', $user->id)->first();
 
-            $report = DamageReport::where('user_id', $user->id)->first();
-            return view("dashboard.homeOwner", compact("damageReports","report", "personalInfo","damages"));
-        }
+    // 🔔 Get unread notifications
+    $notifications = $user->unreadNotifications;
+
+    return view("dashboard.homeOwner", compact(
+        "damageReports",
+        "report",
+        "personalInfo",
+        "damages",
+        "notifications"  // pass to view
+    ));
+}
+
 
         if ($user->role_id == 2) {
     $provider = $user->provider ?? new Provider();

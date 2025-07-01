@@ -4,7 +4,6 @@
 
 @section('content')
 <style>
-  /* Make charts fully responsive inside their boxes */
   canvas {
     width: 100% !important;
     height: 100% !important;
@@ -174,7 +173,6 @@
         </div>
     </div>
 
-    <!-- Additional Charts -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- User Role Distribution -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
@@ -213,7 +211,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Monthly Activity Line Chart
         new Chart(document.getElementById('statsChart').getContext('2d'), {
             type: 'line',
             data: {

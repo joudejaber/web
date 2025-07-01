@@ -151,10 +151,12 @@ public function destroyWorkImage($id)
 
 public function updateStatus(Request $request, $id)
 {
+    
     $contract = Contract::findOrFail($id);
 
     $contract->status = $request->input('status');
     $contract->save();
+    
 
     // 🔔 Notify homeowner after status change
     $homeowner = $contract->homeowner;

@@ -5,32 +5,36 @@
     <div class="grid grid-cols-1 gap-6">
 
         {{-- Notifications --}}
-    @if($notifications->count())
-        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md shadow-sm">
-            <h3 class="font-semibold mb-2">Notifications</h3>
-            <ul class="space-y-2">
-                @foreach($notifications as $notification)
-                    <li class="flex justify-between items-center">
-                        <div class="notification-item">
-        <p>{{ $notification->data['message'] ?? 'Notification' }}</p>
-
-        @if (isset($notification->data['contract_id']))
-            <a href="{{ route('notification.contract.view', $notification->data['contract_id']) }}" 
-               class="text-blue-600 hover:underline ml-1">
-               View Contract
-            </a>
-        @endif
+@if($notifications->count())
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 class="text-xl font-semibold text-gray-900 mb-4">Notifications</h3>
+        <ul class="divide-y divide-gray-200">
+            @foreach($notifications as $notification)
+                <li class="flex justify-between items-center py-4">
+                    <div class="flex-1 text-gray-700">
+                        <p class="text-base leading-relaxed">
+                            {{ $notification->data['message'] ?? 'Notification' }}
+                        </p>
+                        @if (isset($notification->data['contract_id']))
+                            <a href="{{ route('notification.contract.view', $notification->data['contract_id']) }}" 
+                               class="text-blue-600 hover:underline mt-1 inline-block text-sm font-medium">
+                               View Contract
+                            </a>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('notifications.markAsRead', $notification->id) }}" class="ml-6 flex-shrink-0">
+                        @csrf
+                        @method('PATCH')
+                        <button class="text-sm text-gray-500 hover:text-green-600 transition-colors duration-200">
+                            Mark as read
+                        </button>
+                    </form>
+                </li>
+            @endforeach
+        </ul>
     </div>
-                        <form method="POST" action="{{ route('notifications.markAsRead', $notification->id) }}">
-                            @csrf
-                            @method('PATCH')
-                            <button class="text-sm text-gray-500 hover:text-green-600">Mark as read</button>
-                        </form>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+@endif
+
 
         {{-- Personal Information --}}
         <div class="bg-white rounded-lg shadow">

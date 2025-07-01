@@ -11,6 +11,7 @@ class Contract extends Model
 
     // Specify the attributes that can be mass-assigned
     protected $fillable = [
+        'status',
         'appointment_id',
         'provider_id',
         'homeowner_id',

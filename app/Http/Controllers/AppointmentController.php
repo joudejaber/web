@@ -32,7 +32,7 @@ class AppointmentController extends Controller
     $appointment->status = 'pending';
     $appointment->save();
 
-    return redirect()->route('dashboard')->with('success', 'Appointment scheduled successfully!');
+    return redirect()->route('appointments.create')->with('success', 'Appointment scheduled successfully!');
 }
 
 
@@ -92,16 +92,19 @@ public function decline($id)
 
 public function createAppointment()
 {
-    
     $services = Service::all();
     $appointments = Appointment::where('homeowner_id', auth()->id())->with('service')->latest()->get();
 
     $damageReportIds = DamageReport::where('user_id', Auth::id())->pluck('id');
 
-    // Get damages linked to those reports
-    $damages = Damage::whereIn('damage_report_id', $damageReportIds)->get();
+    // Get damages linked to those reports AND with status 'accepted'
+    $damages = Damage::whereIn('damage_report_id', $damageReportIds)
+                     ->where('status', 'accepted')
+                     ->get();
+
     return view('appointments.create', compact('services', 'appointments', 'damages'));
 }
+
 
 public function showDamageDetails($appointmentId)
 {

@@ -13,117 +13,116 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        if ($user->role_id == 1) {
-    $damageReports = DamageReport::where('user_id', $user->id)->latest()->get();
-    $personalInfo = DamageReport::with('damages')->where('user_id', $user->id)->first();
-    $damages = $personalInfo ? $personalInfo->damages : collect();
-    $report = DamageReport::where('user_id', $user->id)->first();
+    if ($user->role_id == 1) {
+        $damageReports = DamageReport::where('user_id', $user->id)->latest()->get();
+        $personalInfo = DamageReport::with('damages')->where('user_id', $user->id)->first();
+        $damages = $personalInfo ? $personalInfo->damages : collect();
+        $report = DamageReport::where('user_id', $user->id)->first();
 
-    // 🔔 Get unread notifications
-    $notifications = $user->unreadNotifications;
+        // 🔔 Get unread notifications
+        $notifications = $user->unreadNotifications;
 
-    return view("dashboard.homeOwner", compact(
-        "damageReports",
-        "report",
-        "personalInfo",
-        "damages",
-        "notifications"  // pass to view
-    ));
-}
-
-
-        if ($user->role_id == 2) {
-    $provider = $user->provider ?? new Provider();
-    $services = $user->service()->with('productofservice')->latest()->get();
-    $products = $user->productofservice()->with('service')->latest()->get();
-    return view("dashboard.serviceProvider", compact("services", "products", "provider"));
-}
-
-
-        if ($user->role_id == 3) {
-    // Fetch data
-    $claimedDamages = Damage::with('report.user')
-        ->where('status', 'pending')
-        ->get();
-
-    $damageReports = DamageReport::with('user')->get();
-
-    $contracts = Contract::with('appointment.homeowner', 'appointment.provider', 'appointment.service')->get();
-
-    $homeowners = User::with(['damageReports.damages'])
-        ->whereHas('damageReports')
-        ->get();
-
-    // Prepare statistics
-    $totalClaims = $claimedDamages->count();
-    $totalContracts = $contracts->count();
-    $totalHomeowners = $homeowners->count();
-
-    // Contract status distribution (for pie chart)
-    $contractStatusCounts = $contracts->groupBy('status')->map->count();
-
-    // Claimed damages grouped by homeowner name (for bar chart)
-$claimedDamageByHomeowner = $claimedDamages
-    ->groupBy(fn($damage) => $damage->report->user->name ?? 'Unknown')
-    ->map->count();
-
-
-    // Contracts per service (for doughnut chart)
-    $serviceCounts = $contracts
-        ->filter(fn($contract) => $contract->appointment && $contract->appointment->service)
-        ->groupBy(fn($contract) => $contract->appointment->service->name)
-        ->map->count();
-
-    return view('government.dashboard', compact(
-        'claimedDamages',
-        'damageReports',
-        'contracts',
-        'homeowners',
-        'totalClaims',
-        'totalContracts',
-        'totalHomeowners',
-        'contractStatusCounts',
-        'claimedDamageByHomeowner',
-        'serviceCounts'
-    ));
-}
-
-
-        if ($user->role_id == 4) {
-            $usersCount = User::count();
-            $servicesCount = Service::count();
-            $appointmentsCount = Appointment::count();
-            $productsCount = ProductOfService::count();
-
-            // Recent Data
-            $recentAppointments = Appointment::with(['homeowner', 'service'])
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-
-            $recentDamageReports = DamageReport::with(['user', 'damages'])
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-
-
-            // Chart Data
-            $chartData = $this->getChartData();
-
-            return view('admin.dashboard', compact(
-                'usersCount',
-                'servicesCount',
-                'productsCount',
-                'appointmentsCount',
-                'recentAppointments',
-                'recentDamageReports',
-                'chartData'
-            ));
-        }
+        return view("dashboard.homeOwner", compact(
+            "damageReports",
+            "report",
+            "personalInfo",
+            "damages",
+            "notifications"
+        ));
     }
+
+    if ($user->role_id == 2) {
+        $provider = $user->provider ?? new Provider();
+        $services = $user->service()->with('productofservice')->latest()->get();
+        $products = $user->productofservice()->with('service')->latest()->get();
+        return view("dashboard.serviceProvider", compact("services", "products", "provider"));
+    }
+
+    if ($user->role_id == 3) {
+        // 👉 Only pending damages for claim stats
+        $claimedDamages = Damage::with('report.user')
+            ->where('status', 'pending')
+            ->get();
+
+        // 👉 All claimed damages (any status) for the bar chart
+        $allClaimedDamages = Damage::with('report.user')->get();
+
+        // Bar chart data: Count damages grouped by homeowner name
+        $claimedDamageByHomeowner = $allClaimedDamages
+            ->filter(fn($damage) => $damage->report && $damage->report->user)
+            ->groupBy(fn($damage) => $damage->report->user->name)
+            ->map->count();
+
+        // Other data
+        $damageReports = DamageReport::with('user')->get();
+
+        $contracts = Contract::with('appointment.homeowner', 'appointment.provider', 'appointment.service')->get();
+
+        $homeowners = User::with(['damageReports.damages'])
+            ->whereHas('damageReports')
+            ->get();
+
+        // Stats
+        $totalClaims = $claimedDamages->count();
+        $totalContracts = $contracts->count();
+        $totalHomeowners = $homeowners->count();
+
+        // Pie chart data: contract status breakdown
+        $contractStatusCounts = $contracts->groupBy('status')->map->count();
+
+        // Doughnut chart: contracts per service
+        $serviceCounts = $contracts
+            ->filter(fn($contract) => $contract->appointment && $contract->appointment->service)
+            ->groupBy(fn($contract) => $contract->appointment->service->name)
+            ->map->count();
+
+        return view('government.dashboard', compact(
+            'claimedDamages',           // pending only
+            'damageReports',
+            'contracts',
+            'homeowners',
+            'totalClaims',
+            'totalContracts',
+            'totalHomeowners',
+            'contractStatusCounts',
+            'claimedDamageByHomeowner', // all statuses
+            'serviceCounts'
+        ));
+    }
+
+    if ($user->role_id == 4) {
+        $usersCount = User::count();
+        $servicesCount = Service::count();
+        $appointmentsCount = Appointment::count();
+        $productsCount = ProductOfService::count();
+
+        $recentAppointments = Appointment::with(['homeowner', 'service'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $recentDamageReports = DamageReport::with(['user', 'damages'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $chartData = $this->getChartData();
+
+        return view('admin.dashboard', compact(
+            'usersCount',
+            'servicesCount',
+            'productsCount',
+            'appointmentsCount',
+            'recentAppointments',
+            'recentDamageReports',
+            'chartData'
+        ));
+    }
+}
+
 
    public function getChartData()
 {

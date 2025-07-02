@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DamageReport;
 use App\Models\Damage;
+use App\Models\User;
 use App\Models\DamageDocumentation;
 use App\Models\DamageImage;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class DamageController extends Controller
         $report = DamageReport::findOrFail($reportId);
         return view('damages.report_prompt', compact('report'));
     }
-    public function storeDamages(Request $request, $reportId)
+   public function storeDamages(Request $request, $reportId)
 {
     $validatedData = $request->validate([
         'damages' => 'required|array|min:1',
@@ -41,13 +42,20 @@ class DamageController extends Controller
             'damage_report_id' => $report->id,
             'name' => $damageData['name'],
             'description' => $damageData['description'],
-            'image_path' => json_encode($imagePaths), // stored as JSON
+            'image_path' => json_encode($imagePaths),
         ]);
+    }
+
+    $firstDescription = $validatedData['damages'][0]['description'] ?? null;
+    if ($firstDescription) {
+        session()->flash('damage_description', $firstDescription);
     }
 
     return redirect()->route('dashboard')
         ->with('success', 'Damage details added successfully.');
 }
+
+
 
 
 
@@ -99,6 +107,21 @@ class DamageController extends Controller
 
         return redirect()->route('dashboard')->with('success', 'Damage report deleted successfully.');
     }
+
+    public function adminDestroy($id)
+{
+    $damage = Damage::findOrFail($id);
+
+    if ($damage->image_path) {
+        foreach (json_decode($damage->image_path, true) as $image) {
+            \Storage::disk('public')->delete($image);
+        }
+    }
+
+    $damage->delete();
+
+    return redirect()->back()->with('success', 'Damage deleted successfully.');
+}
 
     // Show form to add more images to a damage
     public function addImages($id)
@@ -178,4 +201,15 @@ public function showImages(Damage $damage)
     return view('government.damages.images', compact('damage', 'images'));
 }
 
+public function byHomeowner($user_id)
+{
+    $damages = Damage::whereHas('report', function($query) use ($user_id) {
+        $query->where('user_id', $user_id);
+    })->with(['report.user'])->get();
+
+    return view('damages.index', [
+        'damages' => $damages,
+        'homeownerName' => User::find($user_id)->name ?? 'Unknown'
+    ]);
+}
 }

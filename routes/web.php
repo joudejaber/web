@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GovernmentController;
 
+use App\Http\Controllers\AISeverityController;
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get("/login",[AuthController::class,"ShowLoginForm"])->name("login");
 Route::post("/login",[AuthController::class,"login"])->name("login.form");
@@ -61,7 +63,6 @@ Route::get('/admin/damages', [DamageController::class, 'index'])->name('damages.
 Route::get('/appointments/{appointment}/contract', [ContractController::class, 'showByAppointment'])->name('contract.byAppointment');
 
 
-
 Route::middleware(['auth',ServiceProviderMiddleware::class])->group( function () {
     Route::get('/provider/appointments', [AppointmentController::class, 'providerAppointments'])->name('provider.appointments');
     Route::post('/appointments/{id}/accept', [AppointmentController::class, 'accept'])->name('appointment.accept');
@@ -91,6 +92,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->group(func
     Route::get('/admin/providers/{id}', [ServiceController::class, 'showProvider'])->name('providers.show');
     Route::delete('/admin/providers/{id}', [ServiceController::class, 'destroyProvider'])->name('providers.destroy');
     Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    Route::delete('/admin/damages/{id}', [DamageController::class, 'adminDestroy'])->name('admin.damages.destroy');
 });
 
 
@@ -128,8 +130,8 @@ Route::middleware(['auth', GovernmentMiddleware::class])->prefix('government')->
 Route::patch('/notifications/{id}/read', function ($id) {
     $notification = auth()->user()->notifications()->findOrFail($id);
     $notification->markAsRead();
-    return back();
-})->name('notifications.markAsRead');
+    return back();})->name('notifications.markAsRead');
 
-Route::get('/contract/view/{contract}', [ContractController::class, 'showcontractnotification'])
-    ->name('notification.contract.view');
+Route::get('/contract/view/{contract}', [ContractController::class, 'showcontractnotification'])->name('notification.contract.view');
+
+Route::post('/estimate-severity', [AISeverityController::class, 'estimate']);

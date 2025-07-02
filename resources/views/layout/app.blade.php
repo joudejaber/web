@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RenovAid - @yield('title')</title>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
     @yield('styles')
 </head>
+
 <body class="bg-gray-50">
 <nav class="bg-white border-gray-200 dark:bg-gray-900 shadow-md fixed w-full top-0 z-50">
     <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -26,35 +30,31 @@
                     <a href="{{ route('home') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Home</a>
                 </li>
                 <li>
-                    <a href="{{ route('services.index') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Services</a>
+                    <a href="{{ route('about') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">About</a>
                 </li>
-                <li>
-                    <a href="{{ route('about') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-                        About
-                    </a>
-                </li>
-                 <!-- Appointments Button -->
-                 @auth
-                 <!-- If the user is logged in -->
-                 <li>
-                     @if(Auth::user()->role_id == '2')
-                         <!-- If the user is a provider, show provider appointments -->
-                         <a href="{{ route('provider.appointments') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
-                     @else
-                         <!-- If the user is not a provider, show create appointments page -->
-                         <a href="{{ route('appointments.create') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
-                     @endif
-                 </li>
-             @else
-                 <!-- If the user is not logged in, show the login link -->
-                 <li>
-                     <a href="{{ route('login') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
-                 </li>
-             @endauth
 
-                <li>
-                    <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Contact</a>
-                </li>
+                @auth
+                    @if(!in_array(Auth::user()->role_id, [3, 4]))
+                        <li>
+                            <a href="{{ route('services.index') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Services</a>
+                        </li>
+                        <li>
+                            @if(Auth::user()->role_id == 2)
+                                <a href="{{ route('provider.appointments') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
+                            @else
+                                <a href="{{ route('appointments.create') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
+                            @endif
+                        </li>
+                    @endif
+                @else
+                    <li>
+                        <a href="{{ route('services.index') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Services</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('login') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Appointments</a>
+                    </li>
+                @endauth
+
                 @guest
                     <li>
                         <a href="{{ route('login') }}" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Sign In</a>
@@ -87,57 +87,51 @@
     </div>
 </nav>
 
-    <div class="mt-16 min-h-screen">
-        @if(session('success'))
-            <div class="max-w-screen-xl mx-auto p-4">
-                <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
-                    {{ session('success') }}
-                </div>
+<div class="mt-16 min-h-screen">
+    @if(session('success'))
+        <div class="max-w-screen-xl mx-auto p-4">
+            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                {{ session('success') }}
             </div>
-        @endif
-
-        @if(session('error'))
-            <div class="max-w-screen-xl mx-auto p-4">
-                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
-                    {{ session('error') }}
-                </div>
-            </div>
-        @endif
-
-        @yield('content')
-    </div>
-
-    <footer class="bg-white rounded-lg shadow dark:bg-gray-900 m-4">
-        <div class="w-full max-w-screen-xl mx-auto p-4 md:py-8">
-            <div class="sm:flex sm:items-center sm:justify-between">
-                <a href="{{ route('home') }}" class="flex items-center mb-4 sm:mb-0 space-x-3">
-                    <span class="self-center text-2xl font-semibold text-blue-600">Renov<span class="text-gray-800">Aid</span></span>
-                </a>
-                <ul class="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
-                    <li>
-                        <a href="{{ route('about') }}" class="hover:underline me-4 md:me-6">About</a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('privacy.policy') }}" class="hover:underline me-4 md:me-6">Privacy Policy</a>
-                    </li>
-                    
-                    <li>
-                        <a href="#" class="hover:underline me-4 md:me-6">Licensing</a>
-                    </li>
-                    <li>
-                        <a href="#" class="hover:underline">Contact</a>
-                    </li>
-                </ul>
-            </div>
-            <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
-            <span class="block text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2024 RenovAid™. All Rights Reserved.</span>
         </div>
-    </footer>
+    @endif
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-    @yield('scripts')
-    @stack('scripts')
+    @if(session('error'))
+        <div class="max-w-screen-xl mx-auto p-4">
+            <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                {{ session('error') }}
+            </div>
+        </div>
+    @endif
 
+    @yield('content')
+</div>
+
+<footer class="bg-white rounded-lg shadow dark:bg-gray-900 m-4">
+    <div class="w-full max-w-screen-xl mx-auto p-4 md:py-8">
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <a href="{{ route('home') }}" class="flex items-center mb-4 sm:mb-0 space-x-3">
+                <span class="self-center text-2xl font-semibold text-blue-600">Renov<span class="text-gray-800">Aid</span></span>
+            </a>
+            <ul class="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
+                <li>
+                    <a href="{{ route('about') }}" class="hover:underline me-4 md:me-6">About</a>
+                </li>
+                <li>
+                    <a href="{{ route('privacy.policy') }}" class="hover:underline me-4 md:me-6">Privacy Policy</a>
+                </li>
+                <li>
+                    <a href="#" class="hover:underline">Contact</a>
+                </li>
+            </ul>
+        </div>
+        <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
+        <span class="block text-sm text-gray-500 sm:text-center dark:text-gray-400">© 2024 RenovAid™. All Rights Reserved.</span>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+@yield('scripts')
+@stack('scripts')
 </body>
 </html>
